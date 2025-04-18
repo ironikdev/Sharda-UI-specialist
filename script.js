@@ -1,96 +1,70 @@
-window.addEventListener("load", initEvents);
-
-let winning_combinations = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8], 
-    [0, 3, 6], [1, 4, 7], [2, 5, 8], 
-    [0, 4, 8], [2, 4, 6]
-];
-
-let gameOver = false;
-
-function initEvents() {
-    loadButtons();
-}
-
-function loadButtons() {
-    var table = document.querySelector("#gameBoard");
-    for (var i = 0; i < 3; i++) {
-        // Create row inside table
-        var tr = table.insertRow();
-        for (var j = 0; j < 3; j++) {
-            // Create column inside row
-            var td = tr.insertCell();
-            // Create a new element on HTML
-            var btn = document.createElement("button");
-            btn.className = "btn";
-            btn.addEventListener("click", userMove);
-            td.appendChild(btn);
-        }
+// Movie Data
+const movies = [
+    { title: "Inception", genre: "sci-fi", image: "https://th.bing.com/th/id/OIP.fYLXgLBnnbp3N8JCRuUIGAHaLH?w=125&h=187&c=7&r=0&o=5&dpr=1.5&pid=1.7", description: "A mind-bending thriller." },
+    { title: "The Dark Knight", genre: "action", image: "https://th.bing.com/th/id/OIP.Egeen5rNkVwHDKyJEx-Q-AHaK-?pid=ImgDet&w=176&h=260&c=7&dpr=1.5",description:"saviour of Gotham city " },
+    { title: "Forrest Gump", genre: "drama", image: "https://th.bing.com/th/id/OIP.SoTin_IJWjPr74_PiZq6ZwHaLH?w=119&h=180&c=7&r=0&o=5&dpr=1.5&pid=1.7", description: "A tale of life's journey." },
+    { title: "The Avengers", genre: "action", image: "https://th.bing.com/th/id/OIP.f6Et8CDwVX2XrCfNUMpQiAHaHa?w=175&h=180&c=7&r=0&o=5&dpr=1.5&pid=1.7", description: "Avengers assmble" },
+    { title: "The Hangover", genre: "comedy", image: "https://th.bing.com/th/id/OIP.ADRHzS8-UMpMuSTWlvxAuwHaJ4?w=118&h=180&c=7&r=0&o=5&dpr=1.5&pid=1.7", description: "A hilarious bachelor party." },
+    { title: "Interstellar", genre: "sci-fi", image: "https://th.bing.com/th/id/OIP.n-lW5hhF0w9CCmLzfl6aRAHaK-?w=115&h=180&c=7&r=0&o=5&dpr=1.5&pid=1.7", description: "Exploring the cosmos." },
+  ];
+  
+  // DOM Elements
+  const movieList = document.getElementById("movieList");
+  const searchBar = document.getElementById("searchBar");
+  const genreFilter = document.getElementById("genreFilter");
+  
+  // Function to Display Movies
+  function displayMovies(filterGenre = "all", searchQuery = "") {
+    movieList.innerHTML = ""; // Clear existing movies
+    const filteredMovies = movies.filter(movie => {
+      const matchesGenre = filterGenre === "all" || movie.genre === filterGenre;
+      const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesGenre && matchesSearch;
+    });
+  
+    if (filteredMovies.length === 0) {
+      movieList.innerHTML = `<p>No movies found.</p>`;
+      return;
     }
-}
+  
+    filteredMovies.forEach(movie => {
+      const movieCard = document.createElement("div");
+      movieCard.className = "movie";
+      movieCard.innerHTML = `
+        <img src="${movie.image}" alt="${movie.title}">
+        <h3>${movie.title}</h3>
+        <p>${movie.description}</p>
+      `;
+      movieList.appendChild(movieCard);
+    });
+  }
+  
+  // Event Listeners
+  searchBar.addEventListener("input", () => {
+    const searchQuery = searchBar.value;
+    const filterGenre = genreFilter.value;
+    displayMovies(filterGenre, searchQuery);
+  });
+  
+  genreFilter.addEventListener("change", () => {
+    const filterGenre = genreFilter.value;
+    const searchQuery = searchBar.value;
+    displayMovies(filterGenre, searchQuery);
+  });
+  
+  // Initial Display
+  displayMovies();
 
-function userMove() {
-    if (gameOver) return; // Prevent moves if game is over
+  // Theme Toggle
+const toggleThemeButton = document.createElement("button");
+toggleThemeButton.id = "toggleTheme";
+toggleThemeButton.innerHTML = "🌙"; // Default to dark mode
 
-    this.innerHTML = "X";
-    this.style.backgroundColor = "blueviolet";
+// Add the button to the header
+document.querySelector("header").appendChild(toggleThemeButton);
 
-    this.setAttribute("disabled", "true");
-
-    checkWinner(); // Check if the user wins
-
-    // Call cpuMove function after 1 second if the game is not yet won
-    if (!gameOver) {
-        setTimeout(() => {
-            cpuMove();
-        }, 1000);
-    }
-}
-
-function cpuMove() {
-    if (gameOver) return; // Prevent moves if game is over
-
-    let btns = document.querySelectorAll(".btn");
-    let availableButtons = Array.from(btns).filter(btn => btn.innerHTML === "");
-
-    if (availableButtons.length === 0) return; // No moves left
-
-    let randomIndex = parseInt(Math.random() * availableButtons.length);
-    let btn = availableButtons[randomIndex];
-    
-    btn.innerHTML = "0";
-    btn.style.backgroundColor = "pink"
-    btn.setAttribute("disabled", "true");
-    checkWinner(); // Check if CPU wins
-}
-
-function checkWinner() {
-    let btns = document.querySelectorAll(".btn");
-
-    for (let combo of winning_combinations) {
-        let [a, b, c] = combo;
-
-        if (btns[a].innerHTML && btns[a].innerHTML === btns[b].innerHTML && btns[a].innerHTML === btns[c].innerHTML) {
-            // console.log(btns[a].innerHTML + " Won the game!");
-            gameOver = true;
-            disableAllButtons();
-            btns[a].style.backgroundColor="green"
-            btns[b].style.backgroundColor="green"
-            btns[c].style.backgroundColor="green"
-            alert(btns[a].innerHTML + " has won the game");
-            return;
-        }
-    }
-
-    if (Array.from(btns).every(btn => btn.innerHTML)) {
-        alert("It's a draw!");
-        console.log("It's a draw!");
-        gameOver = true;
-    }
-}
-
-
-function disableAllButtons() {
-    let btns = document.querySelectorAll(".btn");
-    btns.forEach(btn => btn.setAttribute("disabled", "true"));
-}
+// Event listener to toggle light/dark mode
+toggleThemeButton.addEventListener("click", () => {
+  document.body.classList.toggle("light-theme");
+  toggleThemeButton.innerHTML = document.body.classList.contains("light-theme") ? "☀️" : "🌙";
+});
